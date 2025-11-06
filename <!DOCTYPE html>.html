@@ -3,49 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анализ емкости аудитории в интернете</title>
+    <title>Анализ ёмкости аудитории в интернете</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; color: #333; }
+        h1 { text-align: center; color: #007bff; }
         .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #333; }
-        .filters { display: flex; justify-content: space-around; margin-bottom: 20px; flex-wrap: wrap; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        .filters { margin: 20px 0; }
         select { padding: 5px; margin: 5px; }
-        .chart-container { position: relative; height: 400px; width: 100%; margin-bottom: 20px; }
+        .chart-container { position: relative; height: 400px; margin: 20px 0; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Емкость пользователей по полу, возрасту и интересам</h1>
-        <p>Общее количество пользователей: <span id="totalUsers">1000</span></p>
+        <h1>Ёмкость аудитории в интернете</h1>
+        <p>Анализ по полу, возрасту и интересам (примерные данные в тыс. активных пользователей в RU/СНГ).</p>
         
         <div class="filters">
-            <label>Пол: <select id="genderFilter">
+            <label>Фильтр по полу: </label>
+            <select id="genderFilter">
                 <option value="">Все</option>
-                <option value="Male">Мужской</option>
-                <option value="Female">Женский</option>
-            </select></label>
-            
-            <label>Возраст: <select id="ageFilter">
+                <option value="Мужчины">Мужчины</option>
+                <option value="Женщины">Женщины</option>
+            </select>
+            <label>Фильтр по возрасту: </label>
+            <select id="ageFilter">
                 <option value="">Все</option>
                 <option value="18-24">18-24</option>
                 <option value="25-34">25-34</option>
-                <option value="35-44">35-44</option>
-                <option value="45-54">45-54</option>
-                <option value="55+">55+</option>
-            </select></label>
-            
-            <label>Интерес: <select id="interestFilter">
-                <option value="">Все</option>
-                <option value="Sports">Спорт</option>
-                <option value="Music">Музыка</option>
-                <option value="Travel">Путешествия</option>
-                <option value="Tech">Технологии</option>
-                <option value="Food">Еда</option>
-                <option value="Gaming">Игры</option>
-            </select></label>
+                <option value="35+">35+</option>
+            </select>
+            <button onclick="updateTable()">Применить фильтры</button>
         </div>
-
+        
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Пол</th>
+                    <th>Возраст</th>
+                    <th>Интересы</th>
+                    <th>Ёмкость (тыс. пользователей)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Данные будут вставлены JS -->
+            </tbody>
+        </table>
+        
         <div class="chart-container">
             <canvas id="genderChart"></canvas>
         </div>
@@ -58,172 +65,111 @@
     </div>
 
     <script>
-        // Генерированные синтетические данные (замени на реальные из API)
-        const rawData = [
-            { gender: 'Male', age: '18-24', interest: 'Sports', count: 45 },
-            { gender: 'Male', age: '18-24', interest: 'Music', count: 38 },
-            { gender: 'Male', age: '18-24', interest: 'Travel', count: 32 },
-            { gender: 'Male', age: '18-24', interest: 'Tech', count: 50 },
-            { gender: 'Male', age: '18-24', interest: 'Food', count: 28 },
-            { gender: 'Male', age: '18-24', interest: 'Gaming', count: 55 },
-            { gender: 'Female', age: '18-24', interest: 'Sports', count: 40 },
-            { gender: 'Female', age: '18-24', interest: 'Music', count: 52 },
-            { gender: 'Female', age: '18-24', interest: 'Travel', count: 48 },
-            { gender: 'Female', age: '18-24', interest: 'Tech', count: 35 },
-            { gender: 'Female', age: '18-24', interest: 'Food', count: 42 },
-            { gender: 'Female', age: '18-24', interest: 'Gaming', count: 30 },
-            { gender: 'Male', age: '25-34', interest: 'Sports', count: 60 },
-            { gender: 'Male', age: '25-34', interest: 'Music', count: 45 },
-            { gender: 'Male', age: '25-34', interest: 'Travel', count: 55 },
-            { gender: 'Male', age: '25-34', interest: 'Tech', count: 70 },
-            { gender: 'Male', age: '25-34', interest: 'Food', count: 50 },
-            { gender: 'Male', age: '25-34', interest: 'Gaming', count: 40 },
-            { gender: 'Female', age: '25-34', interest: 'Sports', count: 35 },
-            { gender: 'Female', age: '25-34', interest: 'Music', count: 60 },
-            { gender: 'Female', age: '25-34', interest: 'Travel', count: 65 },
-            { gender: 'Female', age: '25-34', interest: 'Tech', count: 45 },
-            { gender: 'Female', age: '25-34', interest: 'Food', count: 55 },
-            { gender: 'Female', age: '25-34', interest: 'Gaming', count: 25 },
-            { gender: 'Male', age: '35-44', interest: 'Sports', count: 50 },
-            { gender: 'Male', age: '35-44', interest: 'Music', count: 40 },
-            { gender: 'Male', age: '35-44', interest: 'Travel', count: 45 },
-            { gender: 'Male', age: '35-44', interest: 'Tech', count: 55 },
-            { gender: 'Male', age: '35-44', interest: 'Food', count: 60 },
-            { gender: 'Male', age: '35-44', interest: 'Gaming', count: 20 },
-            { gender: 'Female', age: '35-44', interest: 'Sports', count: 30 },
-            { gender: 'Female', age: '35-44', interest: 'Music', count: 45 },
-            { gender: 'Female', age: '35-44', interest: 'Travel', count: 50 },
-            { gender: 'Female', age: '35-44', interest: 'Tech', count: 40 },
-            { gender: 'Female', age: '35-44', interest: 'Food', count: 65 },
-            { gender: 'Female', age: '35-44', interest: 'Gaming', count: 15 },
-            { gender: 'Male', age: '45-54', interest: 'Sports', count: 40 },
-            { gender: 'Male', age: '45-54', interest: 'Music', count: 35 },
-            { gender: 'Male', age: '45-54', interest: 'Travel', count: 40 },
-            { gender: 'Male', age: '45-54', interest: 'Tech', count: 45 },
-            { gender: 'Male', age: '45-54', interest: 'Food', count: 50 },
-            { gender: 'Male', age: '45-54', interest: 'Gaming', count: 10 },
-            { gender: 'Female', age: '45-54', interest: 'Sports', count: 25 },
-            { gender: 'Female', age: '45-54', interest: 'Music', count: 40 },
-            { gender: 'Female', age: '45-54', interest: 'Travel', count: 45 },
-            { gender: 'Female', age: '45-54', interest: 'Tech', count: 35 },
-            { gender: 'Female', age: '45-54', interest: 'Food', count: 55 },
-            { gender: 'Female', age: '45-54', interest: 'Gaming', count: 5 },
-            { gender: 'Male', age: '55+', interest: 'Sports', count: 30 },
-            { gender: 'Male', age: '55+', interest: 'Music', count: 30 },
-            { gender: 'Male', age: '55+', interest: 'Travel', count: 35 },
-            { gender: 'Male', age: '55+', interest: 'Tech', count: 30 },
-            { gender: 'Male', age: '55+', interest: 'Food', count: 40 },
-            { gender: 'Male', age: '55+', interest: 'Gaming', count: 5 },
-            { gender: 'Female', age: '55+', interest: 'Sports', count: 20 },
-            { gender: 'Female', age: '55+', interest: 'Music', count: 35 },
-            { gender: 'Female', age: '55+', interest: 'Travel', count: 40 },
-            { gender: 'Female', age: '55+', interest: 'Tech', count: 25 },
-            { gender: 'Female', age: '55+', interest: 'Food', count: 45 },
-            { gender: 'Female', age: '55+', interest: 'Gaming', count: 0 }
+        // Примерные данные (на основе типичных stats: ~50/50 пол, пики в 25-34, популярные интересы)
+        const data = [
+            { gender: 'Мужчины', age: '18-24', interest: 'Спорт', capacity: 1200 },
+            { gender: 'Женщины', age: '18-24', interest: 'Мода', capacity: 900 },
+            { gender: 'Мужчины', age: '25-34', interest: 'Технологии', capacity: 1500 },
+            { gender: 'Женщины', age: '25-34', interest: 'Красота', capacity: 1100 },
+            { gender: 'Мужчины', age: '35+', interest: 'Авто', capacity: 800 },
+            { gender: 'Женщины', age: '35+', interest: 'Путешествия', capacity: 700 },
+            { gender: 'Мужчины', age: '18-24', interest: 'Игры', capacity: 1000 },
+            { gender: 'Женщины', age: '25-34', interest: 'Еда', capacity: 950 }
         ];
 
-        // Функция для фильтрации данных
-        function filterData(gender, age, interest) {
-            return rawData.filter(row => 
-                (!gender || row.gender === gender) &&
-                (!age || row.age === age) &&
-                (!interest || row.interest === interest)
-            );
-        }
-
-        // Агрегация данных
-        function aggregateByGender(data) {
-            const agg = {};
-            data.forEach(row => {
-                agg[row.gender] = (agg[row.gender] || 0) + row.count;
+        // Функция для рендера таблицы
+        function renderTable(filteredData = data) {
+            const tbody = document.querySelector('#dataTable tbody');
+            tbody.innerHTML = '';
+            filteredData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.gender}</td>
+                    <td>${row.age}</td>
+                    <td>${row.interest}</td>
+                    <td>${row.capacity}</td>
+                `;
+                tbody.appendChild(tr);
             });
-            return Object.entries(agg).map(([label, value]) => ({ label, value }));
         }
 
-        function aggregateByAge(data) {
-            const agg = {};
-            data.forEach(row => {
-                agg[row.age] = (agg[row.age] || 0) + row.count;
-            });
-            return Object.entries(agg).map(([label, value]) => ({ label, value }));
-        }
-
-        function aggregateByInterest(data) {
-            const agg = {};
-            data.forEach(row => {
-                agg[row.interest] = (agg[row.interest] || 0) + row.count;
-            });
-            return Object.entries(agg).map(([label, value]) => ({ label, value }));
-        }
-
-        // Обновление диаграмм
-        function updateCharts() {
+        // Фильтрация
+        function updateTable() {
             const genderFilter = document.getElementById('genderFilter').value;
             const ageFilter = document.getElementById('ageFilter').value;
-            const interestFilter = document.getElementById('interestFilter').value;
-
-            const filtered = filterData(genderFilter, ageFilter, interestFilter);
-            const total = filtered.reduce((sum, row) => sum + row.count, 0);
-            document.getElementById('totalUsers').textContent = total;
-
-            // Данные для диаграмм
-            const genderData = aggregateByGender(filtered);
-            const ageData = aggregateByAge(filtered);
-            const interestData = aggregateByInterest(filtered);
-
-            // Обновление gender chart
-            genderCtx.data.labels = genderData.map(d => d.label);
-            genderCtx.data.datasets[0].data = genderData.map(d => d.value);
-            genderCtx.update();
-
-            // Обновление age chart
-            ageCtx.data.labels = ageData.map(d => d.label);
-            ageCtx.data.datasets[0].data = ageData.map(d => d.value);
-            ageCtx.update();
-
-            // Обновление interest chart
-            interestCtx.data.labels = interestData.map(d => d.label);
-            interestCtx.data.datasets[0].data = interestData.map(d => d.value);
-            interestCtx.update();
+            let filtered = data;
+            if (genderFilter) filtered = filtered.filter(d => d.gender === genderFilter);
+            if (ageFilter) filtered = filtered.filter(d => d.age === ageFilter);
+            renderTable(filtered);
+            updateCharts(filtered); // Обновляем графики
         }
 
-        // Инициализация диаграмм
-        const genderCtx = document.getElementById('genderChart').getContext('2d');
-        const genderChart = new Chart(genderCtx, {
-            type: 'pie',
-            data: { labels: [], datasets: [{ data: [], backgroundColor: ['#36A2EB', '#FF6384'] }] },
-            options: { responsive: true, plugins: { title: { display: true, text: 'Распределение по полу' } } }
-        });
+        // График по полу (pie)
+        function renderGenderChart(filteredData) {
+            const ctx = document.getElementById('genderChart').getContext('2d');
+            if (window.genderChart) window.genderChart.destroy();
+            const maleSum = filteredData.filter(d => d.gender === 'Мужчины').reduce((sum, d) => sum + d.capacity, 0);
+            const femaleSum = filteredData.filter(d => d.gender === 'Женщины').reduce((sum, d) => sum + d.capacity, 0);
+            window.genderChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Мужчины', 'Женщины'],
+                    datasets: [{ data: [maleSum, femaleSum], backgroundColor: ['#36A2EB', '#FF6384'] }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'Распределение по полу' } } }
+            });
+        }
 
-        const ageCtx = document.getElementById('ageChart').getContext('2d');
-        const ageChart = new Chart(ageCtx, {
-            type: 'bar',
-            data: { labels: [], datasets: [{ label: 'Количество', data: [], backgroundColor: '#FFCE56' }] },
-            options: { responsive: true, plugins: { title: { display: true, text: 'Распределение по возрасту' } } }
-        });
+        // График по возрасту (bar)
+        function renderAgeChart(filteredData) {
+            const ctx = document.getElementById('ageChart').getContext('2d');
+            if (window.ageChart) window.ageChart.destroy();
+            const ageSums = {};
+            filteredData.forEach(d => {
+                ageSums[d.age] = (ageSums[d.age] || 0) + d.capacity;
+            });
+            window.ageChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(ageSums),
+                    datasets: [{ label: 'Ёмкость', data: Object.values(ageSums), backgroundColor: '#FFCE56' }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'Распределение по возрасту' } } }
+            });
+        }
 
-        const interestCtx = document.getElementById('interestChart').getContext('2d');
-        const interestChart = new Chart(interestCtx, {
-            type: 'bar',
-            data: { labels: [], datasets: [{ label: 'Количество', data: [], backgroundColor: '#4BC0C0' }] },
-            options: { responsive: true, plugins: { title: { display: true, text: 'Распределение по интересам' } } }
-        });
+        // График по интересам (radar)
+        function renderInterestChart(filteredData) {
+            const ctx = document.getElementById('interestChart').getContext('2d');
+            if (window.interestChart) window.interestChart.destroy();
+            const interestSums = {};
+            filteredData.forEach(d => {
+                interestSums[d.interest] = (interestSums[d.interest] || 0) + d.capacity;
+            });
+            window.interestChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: Object.keys(interestSums),
+                    datasets: [{ label: 'Ёмкость', data: Object.values(interestSums), backgroundColor: 'rgba(75,192,192,0.2)', borderColor: 'rgba(75,192,192,1)' }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'Распределение по интересам' } } }
+            });
+        }
 
-        // Слушатели событий для фильтров
-        document.querySelectorAll('select').forEach(select => {
-            select.addEventListener('change', updateCharts);
-        });
+        // Обновление всех графиков
+        function updateCharts(filteredData) {
+            renderGenderChart(filteredData);
+            renderAgeChart(filteredData);
+            renderInterestChart(filteredData);
+        }
 
         // Инициализация
-        updateCharts();
+        renderTable();
+        updateCharts(data);
 
-        // Здесь можно добавить fetch для реальных данных, например:
-        // async function loadRealData() {
-        //     const response = await fetch('/api/audience-data');
-        //     rawData = await response.json();
-        //     updateCharts();
-        // }
-        // loadRealData();
+        // События для фильтров (автообновление)
+        document.getElementById('genderFilter').addEventListener('change', updateTable);
+        document.getElementById('ageFilter').addEventListener('change', updateTable);
     </script>
 </body>
 </html>
