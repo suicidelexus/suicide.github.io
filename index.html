@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анализ ёмкости аудитории</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; color: #333; }
+        h1 { text-align: center; color: #007bff; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        .filters { margin: 20px 0; }
+        select { padding: 5px; margin: 5px; }
+        .chart-container { position: relative; height: 400px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ёмкость аудитории в интернете</h1>
+        <p>Анализ по полу, возрасту и интересам (тыс. пользователей)</p>
+        
+        <div class="filters">
+            <label>Пол: </label>
+            <select id="genderFilter">
+                <option value="">Все</option>
+                <option value="Мужчины">Мужчины</option>
+                <option value="Женщины">Женщины</option>
+            </select>
+            <label>Возраст: </label>
+            <select id="ageFilter">
+                <option value="">Все</option>
+                <option value="18-24">18-24</option>
+                <option value="25-34">25-34</option>
+                <option value="35+">35+</option>
+            </select>
+            <button onclick="updateTable()">Фильтр</button>
+        </div>
+        
+        <table id="dataTable">
+            <thead>
+                <tr><th>Пол</th><th>Возраст</th><th>Интересы</th><th>Ёмкость</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        
+        <div class="chart-container"><canvas id="genderChart"></canvas></div>
+        <div class="chart-container"><canvas id="ageChart"></canvas></div>
+        <div class="chart-container"><canvas id="interestChart"></canvas></div>
+    </div>
+
+    <script>
+        const data = [
+            { gender: 'Мужчины', age: '18-24', interest: 'Спорт', capacity: 1200 },
+            { gender: 'Женщины', age: '18-24', interest: 'Мода', capacity: 900 },
+            { gender: 'Мужчины', age: '25-34', interest: 'Технологии', capacity: 1500 },
+            { gender: 'Женщины', age: '25-34', interest: 'Красота', capacity: 1100 },
+            { gender: 'Мужчины', age: '35+', interest: 'Авто', capacity: 800 },
+            { gender: 'Женщины', age: '35+', interest: 'Путешествия', capacity: 700 },
+            { gender: 'Мужчины', age: '18-24', interest: 'Игры', capacity: 1000 },
+            { gender: 'Женщины', age: '25-34', interest: 'Еда', capacity: 950 }
+        ];
+
+        function renderTable(filtered = data) {
+            const tbody = document.querySelector('#dataTable tbody');
+            tbody.innerHTML = '';
+            filtered.forEach(r => {
+                tbody.innerHTML += `<tr><td>${r.gender}</td><td>${r.age}</td><td>${r.interest}</td><td>${r.capacity}</td></tr>`;
+            });
+        }
+
+        function updateTable() {
+            const g = document.getElementById('genderFilter').value;
+            const a = document.getElementById('ageFilter').value;
+            let f = data;
+            if (g) f = f.filter(d => d.gender === g);
+            if (a) f = f.filter(d => d.age === a);
+            renderTable(f);
+            updateCharts(f);
+        }
+
+        function updateCharts(d) {
+            const male = d.filter(x => x.gender === 'Мужчины').reduce((s, x) => s + x.capacity, 0);
+            const female = d.filter(x => x.gender === 'Женщины').reduce((s, x) => s + x.capacity, 0);
+            new Chart(document.getElementById('genderChart'), { type: 'pie', data: { labels: ['Мужчины', 'Женщины'], datasets: [{ data: [male, female], backgroundColor: ['#36A2EB', '#FF6384'] }] }, options: { responsive: true, plugins: { title: { display: true, text: 'По полу' } } } });
+
+            const age = {}; d.forEach(x => age[x.age] = (age[x.age] || 0) + x.capacity);
+            new Chart(document.getElementById('ageChart'), { type: 'bar', data: { labels: Object.keys(age), datasets: [{ label: 'Ёмкость', data: Object.values(age), backgroundColor: '#FFCE56' }] }, options: { responsive: true, plugins: { title: { display: true, text: 'По возрасту' } } } });
+
+            const int = {}; d.forEach(x => int[x.interest] = (int[x.interest] || 0) + x.capacity);
+            new Chart(document.getElementById('interestChart'), { type: 'radar', data: { labels: Object.keys(int), datasets: [{ label: 'Ёмкость', data: Object.values(int), backgroundColor: 'rgba(75,192,192,0.2)', borderColor: 'rgba(75,192,192,1)' }] }, options: { responsive: true, plugins: { title: { display: true, text: 'По интересам' } } } });
+        }
+
+        renderTable();
+        updateCharts(data);
+        document.getElementById('genderFilter').onchange = updateTable;
+        document.getElementById('ageFilter').onchange = updateTable;
+    </script>
+</body>
+</html>
